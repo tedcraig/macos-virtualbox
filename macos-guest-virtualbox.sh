@@ -15,15 +15,15 @@
 
 function set_variables() {
 # Customize the installation by setting these variables:
-vm_name="macOS"                  # name of the VirtualBox virtual machine
-macOS_release_name="Catalina"    # install "HighSierra" "Mojave" or "Catalina"
+vm_name="macOS-Catalina"          # name of the VirtualBox virtual machine
+macOS_release_name="Catalina"     # install "HighSierra" "Mojave" or "Catalina"
 storage_size=80000               # VM disk image size in MB, minimum 22000
 storage_format="vdi"             # VM disk image file format, "vdi" or "vmdk"
 cpu_profile="host"               # VM CPU profile, see "CPU profiles" in docs
-cpu_count=2                      # VM CPU cores, minimum 2
-memory_size=4096                 # VM RAM in MB, minimum 2048
+cpu_count=8                      # VM CPU cores, minimum 2
+memory_size=16384                # VM RAM in MB, minimum 2048
 gpu_vram=128                     # VM video RAM in MB, minimum 34, maximum 128
-resolution="1280x800"            # VM display resolution
+resolution="2560x1600"            # VM display resolution
 
 # Values for NVRAM and EFI parameters are required by iCloud, iMessage,
 # and other connected Apple applications, but otherwise not required.
@@ -34,7 +34,7 @@ resolution="1280x800"            # VM display resolution
 # Assigning the following parameters is not required when installing or using macOS.
 
 DmiSystemFamily="MacBook Pro"          # Model Name
-DmiSystemProduct="MacBookPro11,2"      # Model Identifier
+DmiSystemProduct="MacBookPro16,1"      # Model Identifier
 DmiBIOSVersion="string:MBP7.89"        # Boot ROM Version
 DmiSystemSerial="NO_DEVICE_SN"         # Serial Number (system)
 DmiSystemUuid="CAFECAFE-CAFE-CAFE-CAFE-DECAFFDECAFF" # Hardware UUID
@@ -113,7 +113,7 @@ function pad_to_33_chars() {
 
 # custom settings prompt
 echo -e "\nvm_name=\"${vm_name}\""
-pad_to_33_chars "macOS_release_name=\"${macOS_release_name}\"" "# install \"HighSierra\" \"Mojave\" \"Catalina\""
+pad_to_33_chars "macOS_release_name=\"${macOS_release_name}\"" "# install \"HighSierra\" \"Mojave\" \"Catalina\" \"Ventura\""
 pad_to_33_chars "storage_size=${storage_size}"                 "# VM disk image size in MB, minimum 22000"
 pad_to_33_chars "storage_format=\"${storage_format}\""         "# VM disk image file format, \"vdi\" or \"vmdk\""
 pad_to_33_chars "cpu_profile=\"${cpu_profile}\""               "# VM CPU profile, see \"CPU profiles\" in docs"
@@ -394,6 +394,8 @@ fi
 HighSierra_sucatalog='https://swscan.apple.com/content/catalogs/others/index-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog'
 Mojave_sucatalog='https://swscan.apple.com/content/catalogs/others/index-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog'
 Catalina_sucatalog='https://swscan.apple.com/content/catalogs/others/index-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog'
+# Ventura_sucatalog='https://swscan.apple.com/content/catalogs/others/index-13-12-10.16-10.15-10.14-10.13-10.12-10.11-10.10-10.9-mountainlion-lion-snowleopard-leopard.merged-1.sucatalog'
+Ventura_sucatalog='https://swscan.apple.com/content/catalogs/others/index-13.merged-1.sucatalog'
 if [[ "${macOS_release_name:0:1}" =~ [Cc] ]]; then
     if [[ ! ( "${vbox_version:0:1}" -gt 6 ||
               "${vbox_version}" =~ ^6\.1\.[4-9] ||
@@ -416,6 +418,10 @@ elif [[ "${macOS_release_name:0:1}" =~ [Mm] ]]; then
     macOS_release_name="Mojave"
     CFBundleShortVersionString="10.14"
     sucatalog="${Mojave_sucatalog}"
+elif [[ "${macOS_release_name:0:1}" =~ [Vv] ]]; then
+    macOS_release_name="Ventura"
+    CFBundleShortVersionString="13"
+    sucatalog="${Ventura_sucatalog}"
 else
     echo "Can't parse macOS_release_name. Exiting."
     exit
@@ -462,19 +468,20 @@ if [[ -n $(VBoxManage startvm "${vm_name}" 2>&1 1>/dev/null) ]]; then
     exit
 fi
 VBoxManage controlvm "${vm_name}" poweroff 2>/dev/null
-echo -e "\nChecking that VirtualBox uses hardware-supported virtualization."
-vbox_log="$(VBoxManage showvminfo "${vm_name}" --log 0)"
-regex='Attempting fall back to NEM'  # for zsh quoted regex compatibility
-if [[ "${vbox_log}" =~ ${regex} ]]; then
-    echo -e "\nVirtualbox is not using hardware-supported virtualization features."
-    if [[ -n "$(cygcheck -V 2>/dev/null)" ||
-          "$(cat /proc/sys/kernel/osrelease 2>/dev/null)" =~ [Mm]icrosoft ]]; then
-        echo "Check that software such as Hyper-V, Windows Sandbox, WSL2, memory integrity"
-        echo "protection, and other Windows features that lock virtualization are turned off."
-    fi
-    echo "Exiting."
-    exit
-fi
+echo -e "\nTed is skipping (line 470) check that VirtualBox uses hardware-supported virtualization."
+# echo -e "\nChecking that VirtualBox uses hardware-supported virtualization."
+# vbox_log="$(VBoxManage showvminfo "${vm_name}" --log 0)"
+# regex='Attempting fall back to NEM'  # for zsh quoted regex compatibility
+# if [[ "${vbox_log}" =~ ${regex} ]]; then
+#     echo -e "\nVirtualbox is not using hardware-supported virtualization features."
+#     if [[ -n "$(cygcheck -V 2>/dev/null)" ||
+#           "$(cat /proc/sys/kernel/osrelease 2>/dev/null)" =~ [Mm]icrosoft ]]; then
+#         echo "Check that software such as Hyper-V, Windows Sandbox, WSL2, memory integrity"
+#         echo "protection, and other Windows features that lock virtualization are turned off."
+#     fi
+#     echo "Exiting."
+#     exit
+# fi
 }
 
 function prepare_macos_installation_files() {
